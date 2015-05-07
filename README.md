@@ -15,8 +15,8 @@ OBS:<br/>
 		4. Instalar o plugin Startup Profiler. Para surtir efeito, reiniciar o VisualVM<br/>
 <br/>
 Instrucoes para compilação:<br/>
-	1. Na raiz do projeto, executar o comando: mvn clean package<br/>
-		Irá gerar o arquivo target/meanshift-complete.jar<br/>
+	Na raiz do projeto, executar o comando: mvn clean package<br/>
+	Irá gerar o arquivo target/meanshift-complete.jar<br/>
 <br/>
 Executar o programa:<br/>
 	java -jar target/meanshift-complete.jar arq1500.in<br/>
@@ -27,6 +27,7 @@ Executar o programa com profiling VisualVM:<br/>
 			Platform: Java 8<br/>
 			Profile: CPU<br/>
 			Start profiling from classes: MeanShiftClusterer<br/>
+			Profile only classes: MeanShiftClusterer, Matrix<br/>
 		Clicar no botão Profile<br/>
 	2: iniciar o programa, com suporte a profiling:<br/>
 		java -agentpath:/usr/share/visualvm/profiler/lib/deployed/jdk16/linux-amd64/libprofilerinterface.so=/usr/share/visualvm/profiler/lib,5140 -jar target/meanshift-complete.jar<br/>

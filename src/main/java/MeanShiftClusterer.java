@@ -17,7 +17,7 @@ public class MeanShiftClusterer {
 	 * @param max_iterations   the maximum number of iteration steps used by seed convergence. In doubt, use 300.
 	 */
 	public List<Integer> mean_shift(Matrix distanceMatrix, int maxSeeds, final float quantile, final int max_iterations) {
-	    final float bandwidth = estimate_bandwidth(distanceMatrix, quantile);
+	    final float bandwidth = estimateBandwidth(distanceMatrix, quantile);
 
 		Map<Integer, Integer> intensityByCenter = new HashMap<>();
 		{
@@ -42,18 +42,22 @@ public class MeanShiftClusterer {
 	    // POST PROCESSING: remove near duplicate points
 		// If the distance between two kernels is less than the bandwidth,
 		// then we have to remove one because it is a duplicate: remove the one with fewer points.
-		List<Integer> sortedCenters = DataStructureUtils.getMapKeysSortedByValueAsList(intensityByCenter, false, -1);
-		intensityByCenter = null;
-		boolean[] unique = DataStructureUtils.newArrayTrue(sortedCenters.size());
-		for (int i = 0; i < sortedCenters.size(); i++) {
-			int center = sortedCenters.get(i);
-			if (unique[i]) {
-				List<Integer> neighborCenters = indicesOfNeighborsWithinRadius(center, distanceMatrix, bandwidth, sortedCenters);
-				DataStructureUtils.setValue(unique, neighborCenters, false);
-				unique[i] = true; // leave the current point as unique
-			}
-		}
-		return DataStructureUtils.collect(sortedCenters, unique);
+	    TimeWatcher timeWatcher = new TimeWatcher().start();
+	    List<Integer> sortedCenters = DataStructureUtils.getMapKeysSortedByValueAsList(intensityByCenter, false, -1);
+	    intensityByCenter = null;
+	    boolean[] unique = DataStructureUtils.newArrayTrue(sortedCenters.size());
+	    for (int i = 0; i < sortedCenters.size(); i++) {
+	        int center = sortedCenters.get(i);
+	        if (unique[i]) {
+	            List<Integer> neighborCenters = indicesOfNeighborsWithinRadius(center, distanceMatrix, bandwidth, sortedCenters);
+	            DataStructureUtils.setValue(unique, neighborCenters, false);
+	            unique[i] = true; // leave the current point as unique
+	        }
+	    }
+		List<Integer> centers = DataStructureUtils.collect(sortedCenters, unique);
+		System.out.println("post processing finished after "+timeWatcher.getTimeInMiliSecs()+" milisecs");
+
+        return centers;
 	}
 
     private void converge(Matrix distanceMatrix, final int max_iterations, final float bandwidth, double stop_thresh,
@@ -83,8 +87,7 @@ public class MeanShiftClusterer {
         }
     }
 
-	private float estimate_bandwidth(Matrix distanceMatrix, double quantile) {
-		System.out.println("[MeanShiftClusterer#estimate_bandwidth] Starting...");
+	private float estimateBandwidth(Matrix distanceMatrix, double quantile) {
 		TimeWatcher timeWatcher = new TimeWatcher().start();
 
 		final int numLines = distanceMatrix.getLineNumber();
@@ -98,7 +101,7 @@ public class MeanShiftClusterer {
 			sumDistanceKNearestNeighbor += kNearestNeighborDistance;
 		}
 
-		System.out.println("[MeanShiftClusterer#estimate_bandwidth] Finishing, after "+timeWatcher.getTimeInSecs()+" secs.");
+		System.out.println("estimateBandwidth finished after "+timeWatcher.getTimeInMiliSecs()+" milisecs");
 
 		return sumDistanceKNearestNeighbor / numLines;
 	}
@@ -157,7 +160,8 @@ public class MeanShiftClusterer {
 //                m.setValue(j, i, v);
 //            }
 //        }
-//        m.save(new File("/home/icaro/arq1.in"));
+//        m.save(new File("/home/icaro/arq5000.in"));
+//        System.exit(0);
 
         if (args.length != 1) {
             throw new IllegalArgumentException("Usage: arg0 must be the path to a distance matrix file.");
@@ -165,6 +169,10 @@ public class MeanShiftClusterer {
 
 	    Matrix m = Matrix.load(new File(args[0]));
 
-	    new MeanShiftClusterer().mean_shift(m, m.getLineNumber(), 0.5F, 100);
+	    TimeWatcher timeWatcher = new TimeWatcher().start();
+	    List<Integer> clusters = new MeanShiftClusterer().mean_shift(m, m.getLineNumber(), 0.5F, 100);
+	    System.out.println("Time to run meanshift, in milisecs: " + timeWatcher.getTimeInMiliSecs());
+
+	    System.out.println("Cluster centers:" + clusters);
     }
 }
