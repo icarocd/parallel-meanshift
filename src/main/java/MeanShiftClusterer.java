@@ -1,3 +1,4 @@
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -146,16 +147,24 @@ public class MeanShiftClusterer {
 		return pointWithMinSumDistance;
 	}
 
-	public static void main(String[] args) {
-	    int nElements = 20000;
-        Matrix m = new FixedMatrix(nElements, nElements);
-        for (int i = 0; i < nElements; i++) {
-            for (int j = i + 1; j < nElements; j++) {
-                float v = (float) Math.random();
-                m.setValue(i, j, v);
-                m.setValue(j, i, v);
-            }
+	public static void main(String[] args) throws Exception {
+//	    int nElements = 1500;
+//        Matrix m = new Matrix(nElements, nElements);
+//        for (int i = 0; i < nElements; i++) {
+//            for (int j = i + 1; j < nElements; j++) {
+//                float v = (float) Math.random();
+//                m.setValue(i, j, v);
+//                m.setValue(j, i, v);
+//            }
+//        }
+//        m.save(new File("/home/icaro/arq1.in"));
+
+        if (args.length != 1) {
+            throw new IllegalArgumentException("Usage: arg0 must be the path to a distance matrix file.");
         }
-	    new MeanShiftClusterer().mean_shift(m, m.getLineNumber(), 0.5F, 50);
+
+	    Matrix m = Matrix.load(new File(args[0]));
+
+	    new MeanShiftClusterer().mean_shift(m, m.getLineNumber(), 0.5F, 100);
     }
 }
