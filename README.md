@@ -6,13 +6,13 @@ OBS:<br/>
 			sudo add-apt-repository ppa:webupd8team/java<br/>
 			sudo apt-get update<br/>
 			sudo apt-get install oracle-java8-installer<br/>
-		Instalação do maven em Ubuntu:<br/>
-			apt-get install mvn<br/>
+		Instalação do maven em Ubuntu: apt-get install mvn<br/>
 	Para profiling, usamos o VisualVM, com o plugin 'startup profiler' instalado.<br/>
-		Instalação: sudo apt-get install visualvm<br/>
-		Abrir o visualvm<br/>
-		Ir no menu Tools -> Plugins, aba Available Plugins<br/>
-		Instalar o plugin Startup Profiler. Para surtir efeito, reiniciar o VisualVM<br/>
+		Instalação:<br/>
+		1. sudo apt-get install visualvm<br/>
+		2. Abrir o visualvm<br/>
+		3. Ir no menu Tools -> Plugins, aba Available Plugins<br/>
+		4. Instalar o plugin Startup Profiler. Para surtir efeito, reiniciar o VisualVM<br/>
 <br/>
 Instrucoes para compilação:<br/>
 	1. Na raiz do projeto, executar o comando: mvn clean package<br/>
