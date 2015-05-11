@@ -5,29 +5,43 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Perform MeanShift Clustering of data using a flat kernel.
+ * Returns indices of samples from input matrix, where each index relates to a sample that was considered a cluster.
+ */
 public class MeanShiftClusterer {
 
 	/**
-	 * Perform MeanShift Clustering of data using a flat kernel.
-	 * Returns indices of samples from input matrix, where each index relates to a sample that was considered a cluster.
+	 * @param distanceMatrix
+	 * @param maxSeeds        the maximum number of seeds. Use -1 to use all samples as seeds.
+	 * @param quantile        should be between [0, 1]. 0.5 means that the median of all pairwise distances is used. In doubt, use around 0.3.
+	 * @param maxIterations   the maximum number of iteration steps used by seed convergence. In doubt, use 300.
+	 * @return
+	 */
+	public List<Integer> mean_shift(Matrix distanceMatrix, int maxSeeds, final float quantile, final int maxIterations) {
+	    List<Integer> seeds = MathUtils.range(distanceMatrix.getLineNumber());
+        if (maxSeeds > 0 && maxSeeds < seeds.size()) {
+            DataStructureUtils.reduceRandomly(seeds, maxSeeds);
+            System.out.println(seeds.size()+" seeds to be used, from " + distanceMatrix.getLineNumber());
+        }
+
+        return mean_shift(distanceMatrix, seeds, quantile, maxIterations);
+	}
+
+	/**
 	 *
 	 * @param distanceMatrix
-	 * @param maxSeeds         the maximum number of seeds. Use -1 to use all samples as seeds.
-	 * @param quantile         should be between [0, 1]. 0.5 means that the median of all pairwise distances is used. In doubt, use around 0.3.
-	 * @param max_iterations   the maximum number of iteration steps used by seed convergence. In doubt, use 300.
+	 * @param seeds
+	 * @param quantile
+	 * @param maxIterations
+	 * @return
 	 */
-	public List<Integer> mean_shift(Matrix distanceMatrix, int maxSeeds, final float quantile, final int max_iterations) {
+	public List<Integer> mean_shift(Matrix distanceMatrix, List<Integer> seeds, final float quantile, final int maxIterations) {
 	    final float bandwidth = estimateBandwidth(distanceMatrix, quantile);
 
 		Map<Integer, Integer> intensityByCenter = new HashMap<>();
 		{
 		    double stop_thresh = 1e-3 * bandwidth; // when mean has converged
-
-		    List<Integer> seeds = MathUtils.range(distanceMatrix.getLineNumber());
-		    if (maxSeeds > 0 && maxSeeds < seeds.size()) {
-		        DataStructureUtils.reduceRandomly(seeds, maxSeeds);
-		        System.out.println(seeds.size()+" seeds to be used, from " + distanceMatrix.getLineNumber());
-		    }
 
 		    // For each seed, climb gradient until convergence or max_iterations
 		    for (int i = 0; i < seeds.size(); i++) {
@@ -35,7 +49,7 @@ public class MeanShiftClusterer {
 		        if(i % 20 == 0){
 		        	System.out.println("[MeanShiftClusterer] Running... Now on seed_index " + i + "(up to " + seeds.size() + "-1). Current seed:" + seed);
 		        }
-		        converge(distanceMatrix, max_iterations, bandwidth, stop_thresh, intensityByCenter, seed);
+		        converge(distanceMatrix, maxIterations, bandwidth, stop_thresh, intensityByCenter, seed);
 		    }
 		}
 

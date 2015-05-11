@@ -1,5 +1,7 @@
 # parallel-meanshift
-
+MeanShift clustering algorithm implementation for Java language. It uses flat kernel and allows the customization of: seeds, quantile and maximum of iterations.<br/>
+A parallel version is in current development. Patches and suggestions are welcome.
+<br/>
 OBS:<br/>
 	Para build e uso, o programa requer oracle java 8 e maven.<br/>
 		Instalação do oracle java 8 em Ubuntu:<br/>
