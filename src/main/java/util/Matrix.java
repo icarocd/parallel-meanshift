@@ -1,3 +1,4 @@
+package util;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
@@ -5,9 +6,9 @@ import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.text.DecimalFormat;
 import java.text.ParseException;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import com.google.common.primitives.Floats;
 
 public class Matrix {
 
@@ -39,15 +40,6 @@ public class Matrix {
 
     public float[] getValues(int i) {
         return values[i];
-    }
-
-    protected List<Float> copyLine(int i){
-        int columns = getColumnNumber();
-        List<Float> line = new ArrayList<>(columns);
-        for (int j = 0; j < columns; j++) {
-            line.add(getValue(i, j));
-        }
-        return line;
     }
 
     /**
@@ -137,7 +129,7 @@ public class Matrix {
 
     /** Retrieves the Kth lowest value from line i, where both i and k starts in 1. */
     public float getKthLowestValueInLine(int i, int k) {
-        List<Float> line = copyLine(i);
+        List<Float> line = Floats.asList(getValues(i));
         return DataStructureUtils.kthLowest(line, k);
     }
 

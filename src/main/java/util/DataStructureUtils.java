@@ -1,3 +1,4 @@
+package util;
 
 
 import java.util.ArrayList;
@@ -76,10 +77,7 @@ public class DataStructureUtils {
 	}
 
 	/** Returns the kth lowest value from collection, where k starts in 1 */
-	public static <T extends Comparable<? super T>> T kthLowest(List<T> collection, int k){
-		if(k >= collection.size()){
-			throw new IllegalArgumentException("please to a regular sort and then get your desired kth element");
-		}
+	public static <T extends Comparable<? super T>> T kthLowest(Iterable<T> collection, int k){
 		return Ordering.natural().leastOf(collection, k).get(k - 1);
 	}
 
