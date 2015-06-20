@@ -33,8 +33,8 @@ public class MathUtils
 	/** Generates an array from 'from', inclusive, until 'to', exclusive. */
 	public static Iterable<Integer> rangeIterable(int from, int to) {
 	    return new Iterable<Integer>() {
-            public Iterator<Integer> iterator() {
-                return new Iterator<Integer>() {
+	    	public Iterator<Integer> iterator() {
+	    		return new Iterator<Integer>() {
                     private int current = from;
                     public boolean hasNext() {
                         return current < to;
@@ -49,6 +49,25 @@ public class MathUtils
             }
         };
     }
+
+	public static Iterable<Long> rangeIterable(long from, long to) {
+		return new Iterable<Long>() {
+			public Iterator<Long> iterator() {
+				return new Iterator<Long>() {
+					private long current = from;
+					public boolean hasNext() {
+						return current < to;
+					}
+					public Long next() {
+						return current++;
+					}
+					public void remove() {
+						throw new UnsupportedOperationException();
+					}
+				};
+			}
+		};
+	}
 
 	/**
 	 * Returns the maximum value in the array a[], -infinity if no such value.

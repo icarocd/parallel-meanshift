@@ -28,4 +28,41 @@ public class TimeWatcher {
     public float getTimeInMinutes() {
         return getTimeInSecs() / 60F;
     }
+
+    /**
+     * Returns a formatted time representation easier to understand.
+     */
+	public String getTime() {
+		float value = getTimeInNanoSecs();
+    	if(value < 1000){
+    		return value+ " nanosecs";
+    	}
+
+    	float newValue = value / 1000F;
+		if(newValue < 1000){
+			return newValue+ " microsecs";
+		}
+
+		value = newValue;
+		newValue = value / 1000F;
+		if(newValue < 1000){
+			return newValue+ " milisecs";
+		}
+
+		value = newValue;
+		newValue = value / 1000F;
+		if(newValue < 1000){
+			return newValue+ " secs";
+		}
+
+		value = newValue;
+		newValue = value / 60F;
+		if(newValue < 60){
+			return newValue+ " mins";
+		}
+
+		value = newValue;
+		newValue = value / 60F;
+		return newValue+ " hours";
+	}
 }

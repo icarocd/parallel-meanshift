@@ -1,19 +1,14 @@
 package util.parallel;
+
 import java.util.Collection;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
 import util.MathUtils;
 
 /**
  * <p>
- * This class contains some useful classes and methods to parallelize code in an easy and fluent way. Parallel class is self-contained to enable an easier
- * integration and reuse in different java projects. Simple example:
+ * This class contains some useful classes and methods to parallelize code in an easy and fluent way. Parallel class is
+ * self-contained to enable an easier integration and reuse in different java projects. Simple example:
  * </p>
  *
  * <pre>
@@ -25,264 +20,67 @@ import util.MathUtils;
  *     }
  * </pre>
  * <p>
- * The ForEach function can be used as a parallel map function to transform a collection of elements in parallel. For example, suppose we want to convert a list
- * of words to upper case:
+ * The ForEach function can be used as a parallel map function to transform a collection of elements in parallel. For example,
+ * suppose we want to convert a list of words to upper case:
  * </p>
  *
  * <pre>
  * {
- *     &#064;code
- *     Collection&lt;String&gt; upperCaseWords = new ForEach&lt;Integer, String&gt;(elements).apply(new Function&lt;String&gt;() {
- *         public Integer apply(String element) {
- *             return element.toUpperCase();
- *         }
- *     }).values();
+ * 	&#064;code
+ * 	Collection&lt;String&gt; upperCaseWords = new ForEach&lt;Integer, String&gt;(elements).apply(new Function&lt;String&gt;() {
+ * 		public Integer apply(String element) {
+ * 			return element.toUpperCase();
+ * 		}
+ * 	}).values();
  * }
  * </pre>
  */
 public final class Parallel {
 
-    private Parallel() {
-        throw new RuntimeException("Use Parallel static methods");
-    }
+	private Parallel() {
+		throw new RuntimeException("Use Parallel static methods");
+	}
 
-    /**
-     * First-order function interface
-     * @param <E> Element to transform
-     * @param <V> Result of the transformation
-     */
-    public static interface F<E, V> {
-        /**
-         * Apply a function over the element e.
-         * @param e Input element
-         * @return transformation result
-         */
-        V apply(E e);
-    }
+	public static <A, V> Collection<V> ForEach(Iterable<A> elements, Function<A, V> task) {
+		ExecutorService executorService = Executors.newCachedThreadPool();
+		Collection<V> values = ForEach(elements, executorService, task);
+		executorService.shutdown();
+		return values;
+	}
 
-    /**
-     * Action class can be used to define a concurrent task that does not return any value after processing the element.
-     * @param <E> Element processed within the action
-     */
-    public static abstract class Action<E> implements F<E, Void> {
+	public static <A, V> Collection<V> ForEach(Iterable<A> elements, int threads, Function<A, V> task) {
+		ExecutorService executorService = Executors.newFixedThreadPool(threads);
+		Collection<V> values = ForEach(elements, executorService, task);
+		executorService.shutdown();
+		return values;
+	}
 
-        /**
-         * This method is final and cannot be overridden. It applies the action implemented by {@link Action#doAction(Object)}.
-         */
-        public final Void apply(E element) {
-            doAction(element);
-            return null;
-        }
+	public static <A, V> Collection<V> ForEach(Iterable<A> elements, ExecutorService executorService, Function<A, V> task) {
+		try {
+			TaskHandler<V> loop = new ForEach<A, V>(elements, executorService).apply(task);
+			return loop.values();
+		} catch (Exception e) {
+			throw new RuntimeException("ForEach method exception. " + e.getMessage());
+		}
+	}
 
-        /**
-         * Defines the action that will be applied over the element. Every action must implement this method.
-         * @param element element to process
-         */
-        public abstract void doAction(E element);
-    }
+	public static void For(final int from, final int to, final Action<Integer> action) {
+		ExecutorService executorService = Executors.newCachedThreadPool();
+		For(from, to, executorService, action);
+		executorService.shutdown();
+	}
 
-    /**
-     * This class provides some useful methods to handle the execution of a collection of tasks.
-     * @param <V> value of the task
-     */
-    public static class TaskHandler<V> {
-        private Collection<Future<V>> runningTasks = new LinkedList<Future<V>>();
-        private ExecutorService executorService;
+	public static void For(final int from, final int to, ExecutorService executorService, final Action<Integer> action) {
+		ForEach(MathUtils.rangeIterable(from, to), executorService, action);
+	}
 
-        public TaskHandler(ExecutorService executor, Iterable<Callable<V>> tasks) {
+	public static void For(final long from, final long to, final Action<Long> action) {
+		ExecutorService executorService = Executors.newCachedThreadPool();
+		For(from, to, executorService, action);
+		executorService.shutdown();
+	}
 
-            this.executorService = executor;
-            for (Callable<V> task : tasks) {
-                runningTasks.add(executor.submit(task));
-            }
-        }
-
-        /**
-         * Get the current tasks (futures) that are being executed.
-         * @return Collection of futures
-         * @see Future
-         */
-        public Collection<Future<V>> tasks() {
-            return this.runningTasks;
-        }
-
-        /**
-         * This function is equivalent to {@link ExecutorService#awaitTermination(long, TimeUnit)}
-         * @see ExecutorService#awaitTermination(long, TimeUnit)
-         */
-        public boolean wait(long timeout, TimeUnit unit) throws InterruptedException {
-            return this.executorService.awaitTermination(timeout, unit);
-        }
-
-        /**
-         * Retrieves the result of the transformation of each element (the value of each Future). This function blocks until all tasks are terminated.
-         * @return a collection with the results of the elements transformation
-         * @throws InterruptedException
-         * @throws ExecutionException
-         */
-        public Collection<V> values() throws InterruptedException, ExecutionException {
-            Collection<V> results = new LinkedList<V>();
-            for (Future<V> future : this.runningTasks) {
-                V result = future.get();
-                if (result != null) {
-                    results.add(future.get());
-                }
-            }
-            return results;
-        }
-    }
-
-    /**
-     * Class to generate a parallelized version of the for each loop.
-     * @param <E> elements to iterate over.
-     * @param <V> processed element type result.
-     */
-    public static class ForEach<E, V> implements F<F<E, V>, TaskHandler<V>> {
-        // Source elements
-        private Iterable<E> elements;
-        // Executor used to invoke concurrent tasks. By default it uses as many
-        // threads as processors available
-        private ExecutorService executor = Executors.newCachedThreadPool();
-
-        public ForEach(Iterable<E> elements) {
-            this.elements = elements;
-        }
-
-        /**
-         * Configure the number of available threads that will be used. Note that this configuration has no effect if a custom executor
-         * {@link ForEach#customExecutor(ExecutorService)} is provided.
-         * @param threads number of threads to use
-         * @return a ForEach instance
-         */
-        public ForEach<E, V> withFixedThreads(int threads) {
-            this.executor = Executors.newFixedThreadPool(threads);
-            return this;
-        }
-
-        /**
-         * Set a custom executor service
-         * @param executor ExecutorService to use
-         * @return the instance of ForEach configured with the new executor service.
-         */
-        public ForEach<E, V> customExecutor(ExecutorService executor) {
-            this.executor = executor;
-            return this;
-        }
-
-        /**
-         * Encapsulates the ForEach instance into a Callable that retrieves a TaskHandler with the invoked tasks. Example:
-         *
-         * <pre>
-         *     {@code Collection<Double> numbers = new Collection<Double>(...);
-         *       Callable<TaskHandler<V>> forEach = new ForEach<Double, String>(numbers)
-         *              .prepare(new F<Double, String>() {
-         *                  String apply(Double e) {
-         *                      return e.toString();
-         *                  }
-         *              });
-         *     forEach.call().values();
-         *     }
-         * </pre>
-         * @param f
-         * @return
-         */
-        public Callable<TaskHandler<V>> prepare(final F<E, V> f) {
-            return new Callable<Parallel.TaskHandler<V>>() {
-                public TaskHandler<V> call() throws Exception {
-                    return new ForEach<E, V>(elements).apply(f);
-                }
-            };
-        }
-
-        public TaskHandler<V> apply(F<E, V> f) {
-            return new TaskHandler<V>(executor, map(elements, f));
-        }
-
-        private Iterable<Callable<V>> map(final Iterable<E> elements, final F<E, V> f) {
-            return new Iterable<Callable<V>>() {
-                @Override
-                public Iterator<Callable<V>> iterator() {
-                    return new Iterator<Callable<V>>() {
-                        Iterator<E> it = elements.iterator();
-
-                        @Override
-                        public boolean hasNext() {
-                            return it.hasNext();
-                        }
-
-                        @Override
-                        public Callable<V> next() {
-                            final E e = it.next();
-                            return new Callable<V>() {
-                                public V call() throws Exception {
-                                    return f.apply(e);
-                                }
-                            };
-                        }
-
-                        @Override
-                        public void remove() {
-                            throw new UnsupportedOperationException();
-                        }
-                    };
-                }
-            };
-        }
-
-    }
-
-    /**
-     * InterruptedExceptions occurred during the execution will be thrown as RuntimeExceptions. To handle these interruptions, use new For.Each instead of this
-     * static method.
-     * @param elements
-     * @param task
-     */
-    public static <A, V> Collection<V> ForEach(Iterable<A> elements, F<A, V> task) {
-        try {
-            TaskHandler<V> loop = new ForEach<A, V>(elements).apply(task);
-            Collection<V> values = loop.values();
-            loop.executorService.shutdown();
-            return values;
-        } catch (Exception e) {
-            throw new RuntimeException("ForEach method exception. " + e.getMessage());
-        }
-    }
-
-    /**
-     * Perform a parallel iteration, similar to {@code for(i=from;i<to;i++)} but launching one thread per iteration.
-     * @param from starting index
-     * @param to upper bound
-     * @param action the action to perform in each iteration
-     */
-    public static void For(final long from, final long to, final Action<Long> action) {
-        ForEach(new Iterable<Long>() {
-            public Iterator<Long> iterator() {
-                return new Iterator<Long>() {
-                    private long current = from;
-
-                    public boolean hasNext() {
-                        return current < to;
-                    }
-
-                    public Long next() {
-                        return current++;
-                    }
-
-                    public void remove() {
-                        throw new UnsupportedOperationException();
-                    }
-                };
-            }
-        }, action);
-    }
-
-    /**
-     * Perform a parallel iteration, similar to {@code for(i=from;i<to;i++)} but launching one thread per iteration.
-     * @param from starting index
-     * @param to upper bound
-     * @param action the action to perform in each iteration
-     */
-    public static void For(final int from, final int to, final Action<Integer> action) {
-        ForEach(MathUtils.rangeIterable(from,to), action);
-    }
+	public static void For(final long from, final long to, ExecutorService executorService, final Action<Long> action) {
+		ForEach(MathUtils.rangeIterable(from, to), executorService, action);
+	}
 }

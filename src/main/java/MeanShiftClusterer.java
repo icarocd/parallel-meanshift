@@ -1,13 +1,22 @@
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.stream.IntStream;
 import util.DataStructureUtils;
 import util.MathUtils;
 import util.Matrix;
 import util.TimeWatcher;
+import util.parallel.Action;
+import util.parallel.AtomicFloat;
+import util.parallel.Parallel;
 
 /**
  * Perform MeanShift Clustering of data using a flat kernel.
@@ -15,7 +24,11 @@ import util.TimeWatcher;
  */
 public class MeanShiftClusterer {
 
-    private Map<Integer, List<Integer>> neighborsByElement;
+    private static int OPTION = 1; //0 serial, 1 parallel java, 2 parallel api terceiro
+
+	private Map<Integer, List<Integer>> neighborsByElement;
+
+	private ExecutorService executorService;
 
     /**
      * @param distanceMatrix
@@ -33,37 +46,41 @@ public class MeanShiftClusterer {
         return mean_shift(distanceMatrix, seeds, quantile, maxIterations);
     }
 
-    /**
-     *
-     * @param distanceMatrix
-     * @param seeds
-     * @param quantile
-     * @param maxIterations
-     * @return
-     */
     public List<Integer> mean_shift(Matrix distanceMatrix, List<Integer> seeds, final float quantile, final int maxIterations) {
-        neighborsByElement = new HashMap<Integer, List<Integer>>();
-        final float bandwidth = estimateBandwidth(distanceMatrix, quantile);
+    	executorService = OPTION==2 ? Executors.newFixedThreadPool(4) : null;
+
+    	final float bandwidth = estimateBandwidth(distanceMatrix, quantile);
 
         final Map<Integer, Integer> intensityByCenter;
         {
             double stop_thresh = 1e-3 * bandwidth; // when mean has converged
 
+        	computeIndicesOfAllNeighborsWithinRadius(seeds, distanceMatrix, bandwidth);
+
             // For each seed, climb gradient until convergence or max_iterations:
 
-            intensityByCenter = new HashMap<>();
-            for (int i = 0; i < seeds.size(); i++) {
-                int seed = seeds.get(i);
-                converge(distanceMatrix, maxIterations, bandwidth, stop_thresh, intensityByCenter, seed);
+            intensityByCenter = OPTION==0 ? new HashMap<>() : new ConcurrentHashMap<>();
+            {
+            	TimeWatcher timeWatcher = new TimeWatcher().start();
+            	if(OPTION==0){
+            		for (Integer seed : seeds) {
+            			converge(distanceMatrix, maxIterations, stop_thresh, intensityByCenter, seed);
+            		}
+            	}else{
+            		if(OPTION==1){
+            			seeds.parallelStream().forEach( seed -> {
+            				converge(distanceMatrix, maxIterations, stop_thresh, intensityByCenter, seed);
+            			});
+            		}else{
+						Parallel.ForEach(seeds, executorService, new Action<Integer>() {
+							public void doAction(Integer seed) {
+								converge(distanceMatrix, maxIterations, stop_thresh, intensityByCenter, seed);
+							}
+						});
+            		}
+            	}
+            	System.out.println("convergence finished after "+timeWatcher.getTime());
             }
-
-//            intensityByCenter = new ConcurrentHashMap<>();
-//            Parallel.For(0, seeds.size(), new Parallel.Action<Integer>() {
-//                public void doAction(Integer i) {
-//                    int seed = seeds.get(i);
-//                    converge(distanceMatrix, maxIterations, bandwidth, stop_thresh, intensityByCenter, seed);
-//                }
-//            });
         }
 
         // POST PROCESSING: remove near duplicate points
@@ -82,18 +99,22 @@ public class MeanShiftClusterer {
             }
         }
         List<Integer> centers = DataStructureUtils.collect(sortedCenters, unique);
-        System.out.println("post processing finished after "+timeWatcher.getTimeInMiliSecs()+" milisecs");
+        System.out.println("post processing finished after "+timeWatcher.getTime());
+
+        if(executorService != null){
+        	executorService.shutdown();
+        }
 
         return centers;
     }
 
-    private void converge(Matrix distanceMatrix, final int max_iterations, final float bandwidth, double stop_thresh,
+    private void converge(Matrix distanceMatrix, int max_iterations, double stop_thresh,
         Map<Integer, Integer> intensityByCenter, int seed)
     {
         int completed_iterations = 0;
         while(true){
             // Find mean of points within bandwidth
-            List<Integer> pointsWithinRadius = indicesOfAllNeighborsWithinRadius(seed, distanceMatrix, bandwidth);
+            List<Integer> pointsWithinRadius = neighborsByElement.get(seed);
             if(pointsWithinRadius.isEmpty()){
                 break; // Depending on seeding strategy this condition may occur
             }
@@ -117,45 +138,87 @@ public class MeanShiftClusterer {
 
         int knn = (int) (numLines * quantile);
 
-        float sumDistanceKNearestNeighbor = 0;
-        for (int i = 0; i < numLines; i++) {
-            float kNearestNeighborDistance = distanceMatrix.getKthLowestValueInLine(i, knn);
-            sumDistanceKNearestNeighbor += kNearestNeighborDistance;
+        float bandwidth;
+		if (OPTION==0) {
+        	float sumDistanceKNearestNeighbor = 0;
+        	for (int i = 0; i < numLines; i++) {
+        		float kNearestNeighborDistance = distanceMatrix.getKthLowestValueInLine(i, knn);
+        		sumDistanceKNearestNeighbor += kNearestNeighborDistance;
+        	}
+        	bandwidth = sumDistanceKNearestNeighbor / numLines;
+		} else {
+			AtomicFloat sumDistanceKNearestNeighbor = new AtomicFloat();
+			if(OPTION==1){
+				IntStream.range(0, numLines).parallel().forEach(i -> {
+					float kNearestNeighborDistance = distanceMatrix.getKthLowestValueInLine(i, knn);
+					sumDistanceKNearestNeighbor.addAndGet(kNearestNeighborDistance);
+				});
+			}else{
+				Parallel.For(0, numLines, executorService, new Action<Integer>() {
+					public void doAction(Integer i) {
+						float kNearestNeighborDistance = distanceMatrix.getKthLowestValueInLine(i, knn);
+						sumDistanceKNearestNeighbor.addAndGet(kNearestNeighborDistance);
+					}
+				});
+			}
+        	bandwidth = sumDistanceKNearestNeighbor.get() / numLines;
         }
-        float b = sumDistanceKNearestNeighbor / numLines;
 
-//        AtomicFloat sumDistanceKNearestNeighbor2 = new AtomicFloat();
-//        Parallel.For(0, numLines, new Parallel.Action<Integer>() {
-//            public void doAction(Integer i) {
-//                float kNearestNeighborDistance = distanceMatrix.getKthLowestValueInLine(i, knn);
-//                sumDistanceKNearestNeighbor2.addAndGet(kNearestNeighborDistance);
-//            }
-//        });
-//        float b = sumDistanceKNearestNeighbor2.get() / numLines;
+        System.out.println("Bandwidth estimated: "+bandwidth+". Elapsed time: "+timeWatcher.getTime());
 
-        System.out.println("Bandwidth estimated: "+b+". Elapsed time: "+timeWatcher.getTimeInMiliSecs()+" milisecs");
-
-        return b;
+        return bandwidth;
     }
 
     /**
      * Finds the neighbors within a given radius of a point. Returns indices of the neighbors.
      * All points are compared to the point.
      */
-    private List<Integer> indicesOfAllNeighborsWithinRadius(int elementIdx, Matrix distanceMatrix, float radius){
-        List<Integer> indicesOfValuesLowerThanRadius = neighborsByElement.get(elementIdx);
-        if(indicesOfValuesLowerThanRadius == null){
-            indicesOfValuesLowerThanRadius = new ArrayList<>();
-            neighborsByElement.put(elementIdx, indicesOfValuesLowerThanRadius);
-            int pointsLength = distanceMatrix.getColumnNumber();
-            for (int idx = 0; idx < pointsLength; idx++) {
-                int point = idx;
-                if(distanceMatrix.getValue(elementIdx, point) < radius){
-                    indicesOfValuesLowerThanRadius.add(idx);
-                }
-            }
-        }
-        return indicesOfValuesLowerThanRadius;
+    private void computeIndicesOfAllNeighborsWithinRadius(List<Integer> seeds, Matrix distanceMatrix, float bandwidth){
+    	TimeWatcher timeWatcher = new TimeWatcher().start();
+		if (OPTION==0) {
+			neighborsByElement = new HashMap<>();
+    		for (Integer seed : seeds) {
+    			List<Integer> indicesOfValuesLowerThanRadius = new ArrayList<>();
+    			neighborsByElement.put(seed, indicesOfValuesLowerThanRadius);
+    			int pointsLength = distanceMatrix.getColumnNumber();
+    			for (int idx = 0; idx < pointsLength; idx++) {
+    				int point = idx;
+    				if(distanceMatrix.getValue(seed, point) < bandwidth){
+    					indicesOfValuesLowerThanRadius.add(idx);
+    				}
+    			}
+    		}
+    	} else {
+    		neighborsByElement = new ConcurrentHashMap<>();
+    		if(OPTION==1){
+    			seeds.parallelStream().forEach( seed -> {
+    				List<Integer> indicesOfValuesLowerThanRadius = new ArrayList<>();
+    				neighborsByElement.put(seed, indicesOfValuesLowerThanRadius);
+    				int pointsLength = distanceMatrix.getColumnNumber();
+    				for (int idx = 0; idx < pointsLength; idx++) {
+    					int point = idx;
+    					if(distanceMatrix.getValue(seed, point) < bandwidth){
+    						indicesOfValuesLowerThanRadius.add(idx);
+    					}
+    				}
+    			});
+    		}else{
+    			Parallel.ForEach(seeds, executorService, new Action<Integer>() {
+					public void doAction(Integer seed) {
+						List<Integer> indicesOfValuesLowerThanRadius = new ArrayList<>();
+	    				neighborsByElement.put(seed, indicesOfValuesLowerThanRadius);
+	    				int pointsLength = distanceMatrix.getColumnNumber();
+	    				for (int idx = 0; idx < pointsLength; idx++) {
+	    					int point = idx;
+	    					if(distanceMatrix.getValue(seed, point) < bandwidth){
+	    						indicesOfValuesLowerThanRadius.add(idx);
+	    					}
+	    				}
+					}
+				});
+    		}
+    	}
+		System.out.println("Time to compute neighbors: "+timeWatcher.getTime());
     }
 
     /**
@@ -191,29 +254,41 @@ public class MeanShiftClusterer {
     }
 
     public static void main(String[] args) throws Exception {
-//        int nElements = 1500;
-//        Matrix m = new Matrix(nElements, nElements);
-//        for (int i = 0; i < nElements; i++) {
-//            for (int j = i + 1; j < nElements; j++) {
-//                float v = (float) Math.random();
-//                m.setValue(i, j, v);
-//                m.setValue(j, i, v);
-//            }
-//        }
-//        m.save(new File("/home/icaro/arq5000.in"));
-//        System.exit(0);
+        /*
+    	int nElements = 2500;
+        Matrix m = new Matrix(nElements, nElements);
+        for (int i = 0; i < nElements; i++) {
+            for (int j = i + 1; j < nElements; j++) {
+                float v = (float) Math.random();
+                m.setValue(i, j, v);
+                m.setValue(j, i, v);
+            }
+        }
+        m.save(new File("/home/icaro/arq"+nElements+".in"));
+        System.exit(0);
+        */
 
         if (args.length != 1) {
-            throw new IllegalArgumentException("Usage: arg0 must be the path to a distance matrix file.");
+        	//FIXME
+        	args = new String[]{"arq2500.in"};
+            //throw new IllegalArgumentException("Usage: arg0 must be the path to a distance matrix file.");
         }
 
         Matrix m = Matrix.load(new File(args[0]));
 
-        TimeWatcher timeWatcher = new TimeWatcher().start();
-        List<Integer> clusters = new MeanShiftClusterer().mean_shift(m, m.getLineNumber(), 0.5F, 100);
-        System.out.println("Time to run meanshift, in milisecs: " + timeWatcher.getTimeInMiliSecs());
+        //for (int i = 0; i < 200; i++) {
+        	TimeWatcher timeWatcher = new TimeWatcher().start();
+        	List<Integer> clusters = new MeanShiftClusterer().mean_shift(m, m.getLineNumber(), 0.5F, 100);
+        	System.out.println("total time to run meanshift: " + timeWatcher.getTime());
 
-        System.out.println("Cluster centers:" + clusters);
+        	Collections.sort(clusters);
+        	System.out.println("Cluster centers:" + clusters);
+
+        	List<Integer> expectedCenters = Arrays.asList(4, 223, 395, 618, 709, 919, 1227, 1772, 1954, 2018, 2078);
+        	boolean correct = clusters.equals(expectedCenters);
+			System.out.println("Correct:" + correct);
+			if(!correct) { System.exit(1); }
+		//}
 
         //Saida serial para arq1500.in:
         //Cluster centers:[1428, 396, 100, 1113, 905, 1344, 1089, 971]
