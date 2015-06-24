@@ -1,0 +1,177 @@
+arq2500.in
+	Cluster centers:[4, 223, 395, 618, 709, 919, 1227, 1772, 1954, 2018, 2078]
+	option=0
+		Bandwidth estimated: 0.49966693. Elapsed time: 766.96313 milisecs
+		Time to compute neighbors: 104.424614 milisecs
+		convergence finished after 5.58955 secs
+		post processing finished after 12.669232 milisecs
+		total time to run meanshift: 6.474984 secs
+
+		Bandwidth estimated: 0.49966693. Elapsed time: 781.1959 milisecs
+		Time to compute neighbors: 105.58634 milisecs
+		convergence finished after 5.415165 secs
+		post processing finished after 12.951341 milisecs
+		total time to run meanshift: 6.316296 secs
+
+		Bandwidth estimated: 0.49966693. Elapsed time: 770.5474 milisecs
+		Time to compute neighbors: 103.74678 milisecs
+		convergence finished after 5.3647866 secs
+		post processing finished after 12.901005 milisecs
+		total time to run meanshift: 6.2534018 secs
+
+		Mean values:
+			Bandwidth estimattion: 772.902143333 milisecs
+			Compute neighbors: 104.585911333 milisecs
+			Convergence: 5.456500533 secs
+			post processing: 12.840526 milisecs
+			total: 6,348227267 secs
+	option=1
+		Bandwidth estimated: 0.4996663. Elapsed time: 401.13684 milisecs
+		Time to compute neighbors: 64.108185 milisecs
+		convergence finished after 1.8242371 secs
+		post processing finished after 13.269679 milisecs
+		total time to run meanshift: 2.3041658 secs
+
+		Bandwidth estimated: 0.4996662. Elapsed time: 454.1159 milisecs
+		Time to compute neighbors: 66.79822 milisecs
+		convergence finished after 1.8218626 secs
+		post processing finished after 13.113788 milisecs
+		total time to run meanshift: 2.357247 secs
+
+		Bandwidth estimated: 0.49966645. Elapsed time: 416.87408 milisecs
+		Time to compute neighbors: 56.112785 milisecs
+		convergence finished after 1.8072085 secs
+		post processing finished after 13.131912 milisecs
+		total time to run meanshift: 2.2947917 secs
+	option=2
+		Bandwidth estimated: 0.4996669. Elapsed time: 398.81018 milisecs
+		Time to compute neighbors: 69.86186 milisecs
+		convergence finished after 1.9206331 secs
+		post processing finished after 13.328857 milisecs
+		total time to run meanshift: 2.4064522 secs
+
+		Bandwidth estimated: 0.49966693. Elapsed time: 429.752 milisecs
+		Time to compute neighbors: 73.0088 milisecs
+		convergence finished after 1.8120581 secs
+		post processing finished after 13.317783 milisecs
+		total time to run meanshift: 2.3320348 secs
+
+		Bandwidth estimated: 0.4996669. Elapsed time: 392.90723 milisecs
+		Time to compute neighbors: 63.446102 milisecs
+		convergence finished after 2.1460514 secs
+		post processing finished after 15.5088825 milisecs
+		total time to run meanshift: 2.622076 secs
+
+arq3000.in
+	Cluster centers:[198, 488, 504, 583, 835, 2025, 2113, 2118, 2130, 2351]
+	option=0
+		Bandwidth estimated: 0.49996912. Elapsed time: 1.162454 secs
+		Time to compute neighbors: 124.70578 milisecs
+		convergence finished after 9.358193 secs
+		post processing finished after 14.02151 milisecs
+		total time to run meanshift: 10.661165 secs
+		
+		Bandwidth estimated: 0.49996912. Elapsed time: 1.1171062 secs
+		Time to compute neighbors: 118.70713 milisecs
+		convergence finished after 9.270512 secs
+		post processing finished after 14.7804365 milisecs
+		total time to run meanshift: 10.522739 secs
+		
+		Bandwidth estimated: 0.49996912. Elapsed time: 1.1188987 secs
+		Time to compute neighbors: 118.02589 milisecs
+		convergence finished after 9.213257 secs
+		post processing finished after 13.713345 milisecs
+		total time to run meanshift: 10.465532 secs
+	option=1
+		Bandwidth estimated: 0.49996892. Elapsed time: 554.05237 milisecs
+		Time to compute neighbors: 76.01389 milisecs
+		convergence finished after 3.2519748 secs
+		post processing finished after 14.08036 milisecs
+		total time to run meanshift: 3.8977537 secs
+		
+		Bandwidth estimated: 0.49996823. Elapsed time: 547.19385 milisecs
+		Time to compute neighbors: 89.04529 milisecs
+		convergence finished after 3.4804087 secs
+		post processing finished after 14.387669 milisecs
+		total time to run meanshift: 4.1325183 secs
+		
+		Bandwidth estimated: 0.4999687. Elapsed time: 544.0155 milisecs
+		Time to compute neighbors: 82.532906 milisecs
+		convergence finished after 3.3697898 secs
+		post processing finished after 14.898153 milisecs
+		total time to run meanshift: 4.0127177 secs
+	option=2
+		Bandwidth estimated: 0.49996912. Elapsed time: 501.4279 milisecs
+		Time to compute neighbors: 65.64707 milisecs
+		convergence finished after 3.285906 secs
+		post processing finished after 15.335296 milisecs
+		total time to run meanshift: 3.8725014 secs
+		
+		Bandwidth estimated: 0.49996915. Elapsed time: 494.29565 milisecs
+		Time to compute neighbors: 76.0332 milisecs
+		convergence finished after 3.163687 secs
+		post processing finished after 17.063608 milisecs
+		total time to run meanshift: 3.7564561 secs
+		
+		Bandwidth estimated: 0.49996915. Elapsed time: 483.05692 milisecs
+		Time to compute neighbors: 78.65238 milisecs
+		convergence finished after 3.133165 secs
+		post processing finished after 26.027336 milisecs
+		total time to run meanshift: 3.7251244 secs
+
+arq3500.in
+	Cluster centers:[367, 435, 642, 1207, 1380, 1395, 1633, 2127, 2475, 2644, 2852, 3339]
+	option=0
+		Bandwidth estimated: 0.49954718. Elapsed time: 1.5153422 secs
+		Time to compute neighbors: 171.9478 milisecs
+		convergence finished after 14.426483 secs
+		post processing finished after 17.345495 milisecs
+		total time to run meanshift: 16.132648 secs
+		
+		Bandwidth estimated: 0.49954718. Elapsed time: 1.5167874 secs
+		Time to compute neighbors: 177.58429 milisecs
+		convergence finished after 14.440538 secs
+		post processing finished after 17.497477 milisecs
+		total time to run meanshift: 16.15445 secs
+		
+		Bandwidth estimated: 0.49954718. Elapsed time: 1.5431299 secs
+		Time to compute neighbors: 177.47679 milisecs
+		convergence finished after 14.408561 secs
+		post processing finished after 17.609282 milisecs
+		total time to run meanshift: 16.148335 secs
+	option=1
+		Bandwidth estimated: 0.49954692. Elapsed time: 671.5715 milisecs
+		Time to compute neighbors: 79.34505 milisecs
+		convergence finished after 5.3341436 secs
+		post processing finished after 20.319977 milisecs
+		total time to run meanshift: 6.1068735 secs
+		
+		Bandwidth estimated: 0.49954703. Elapsed time: 733.28375 milisecs
+		Time to compute neighbors: 79.89101 milisecs
+		convergence finished after 5.1273484 secs
+		post processing finished after 18.910145 milisecs
+		total time to run meanshift: 5.9610057 secs
+		
+		Bandwidth estimated: 0.49954697. Elapsed time: 632.36115 milisecs
+		Time to compute neighbors: 84.41872 milisecs
+		convergence finished after 5.2405453 secs
+		post processing finished after 17.42546 milisecs
+		total time to run meanshift: 5.976484 secs
+	option=2
+		Bandwidth estimated: 0.49954718. Elapsed time: 617.9952 milisecs
+		Time to compute neighbors: 102.05558 milisecs
+		convergence finished after 5.2939296 secs
+		post processing finished after 17.894514 milisecs
+		total time to run meanshift: 6.035769 secs
+		
+		Bandwidth estimated: 0.49954718. Elapsed time: 601.77985 milisecs
+		Time to compute neighbors: 84.80897 milisecs
+		convergence finished after 5.014013 secs
+		post processing finished after 19.541794 milisecs
+		total time to run meanshift: 5.7240567 secs
+		
+		Bandwidth estimated: 0.49954718. Elapsed time: 586.6314 milisecs
+		Time to compute neighbors: 99.77499 milisecs
+		convergence finished after 5.00381 secs
+		post processing finished after 18.925373 milisecs
+		total time to run meanshift: 5.713234 secs

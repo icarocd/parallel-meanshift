@@ -1,6 +1,5 @@
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -24,7 +23,7 @@ import util.parallel.Parallel;
  */
 public class MeanShiftClusterer {
 
-    private static int OPTION = 1; //0 serial, 1 parallel java, 2 parallel api terceiro
+    private static int OPTION = 1; //0 serial, 1 parallel API java 8, 2 parallel api customizada
 
 	private Map<Integer, List<Integer>> neighborsByElement;
 
@@ -254,9 +253,11 @@ public class MeanShiftClusterer {
     }
 
     public static void main(String[] args) throws Exception {
-        /*
-    	int nElements = 2500;
-        Matrix m = new Matrix(nElements, nElements);
+    	Matrix m;
+
+    	/*
+    	int nElements = 3500;
+        m = new Matrix(nElements, nElements);
         for (int i = 0; i < nElements; i++) {
             for (int j = i + 1; j < nElements; j++) {
                 float v = (float) Math.random();
@@ -264,33 +265,29 @@ public class MeanShiftClusterer {
                 m.setValue(j, i, v);
             }
         }
-        m.save(new File("/home/icaro/arq"+nElements+".in"));
+        m.save(new File("/home/icaro/parallel-meanshift/arq"+nElements+".in"));
         System.exit(0);
         */
 
-        if (args.length != 1) {
-        	//FIXME
-        	args = new String[]{"arq2500.in"};
-            //throw new IllegalArgumentException("Usage: arg0 must be the path to a distance matrix file.");
+        if (args.length == 0) {
+        	System.err.println("Usage:\narg0 is the path for the distance matrix file.\narg1 is optional: 0 for serial, 1 for parallel using java 8, 2 for parallel using custom parallel API");
+        	System.exit(1);
         }
 
-        Matrix m = Matrix.load(new File(args[0]));
+        File distanceMatrixFile = new File(args[0]);
+        if(args.length > 1){
+            OPTION = Integer.parseInt(args[1]);
+        }else{
+            OPTION = 1;
+        }
 
-        //for (int i = 0; i < 200; i++) {
-        	TimeWatcher timeWatcher = new TimeWatcher().start();
-        	List<Integer> clusters = new MeanShiftClusterer().mean_shift(m, m.getLineNumber(), 0.5F, 100);
-        	System.out.println("total time to run meanshift: " + timeWatcher.getTime());
+        m = Matrix.load(distanceMatrixFile);
 
-        	Collections.sort(clusters);
-        	System.out.println("Cluster centers:" + clusters);
+    	TimeWatcher timeWatcher = new TimeWatcher().start();
+    	List<Integer> clusters = new MeanShiftClusterer().mean_shift(m, m.getLineNumber(), 0.5F, 100);
+    	System.out.println("total time to run meanshift: " + timeWatcher.getTime());
 
-        	List<Integer> expectedCenters = Arrays.asList(4, 223, 395, 618, 709, 919, 1227, 1772, 1954, 2018, 2078);
-        	boolean correct = clusters.equals(expectedCenters);
-			System.out.println("Correct:" + correct);
-			if(!correct) { System.exit(1); }
-		//}
-
-        //Saida serial para arq1500.in:
-        //Cluster centers:[1428, 396, 100, 1113, 905, 1344, 1089, 971]
+    	Collections.sort(clusters);
+    	System.out.println("Cluster centers:" + clusters);
     }
 }

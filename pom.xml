@@ -37,7 +37,7 @@
 			</plugin>
 			<plugin>
 				<artifactId>maven-assembly-plugin</artifactId>
-				<version>2.5.4</version>
+				<version>2.5.5</version>
 				<executions>
 					<execution>
 						<phase>package</phase>
@@ -55,8 +55,9 @@
 							<mainClass>MeanShiftClusterer</mainClass>
 						</manifest>
 					</archive>
-					<finalName>${pom.artifactId}-complete</finalName>
+					<finalName>${project.artifactId}-complete</finalName>
 					<appendAssemblyId>false</appendAssemblyId>
+					<attach>false</attach>
 				</configuration>
 			</plugin>
 		</plugins>

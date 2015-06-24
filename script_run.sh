@@ -1,5 +1,35 @@
 set -v
 
-#java -agentpath:/opt/visualvm_138/profiler/lib/deployed/jdk16/linux-amd64/libprofilerinterface.so=/opt/visualvm_138/profiler/lib,5140 -jar target/meanshift-complete.jar arq500.in
-#java -agentpath:/opt/visualvm_138/profiler/lib/deployed/jdk16/linux-amd64/libprofilerinterface.so=/opt/visualvm_138/profiler/lib,5140 -jar target/meanshift-complete.jar arq1000.in
-java -agentpath:/opt/visualvm_138/profiler/lib/deployed/jdk16/linux-amd64/libprofilerinterface.so=/opt/visualvm_138/profiler/lib,5140 -jar target/meanshift-complete.jar arq2500.in
+java -jar target/meanshift-complete.jar arq2500.in 0
+java -jar target/meanshift-complete.jar arq2500.in 0
+java -jar target/meanshift-complete.jar arq2500.in 0
+java -jar target/meanshift-complete.jar arq2500.in 1
+java -jar target/meanshift-complete.jar arq2500.in 1
+java -jar target/meanshift-complete.jar arq2500.in 1
+java -jar target/meanshift-complete.jar arq2500.in 2
+java -jar target/meanshift-complete.jar arq2500.in 2
+java -jar target/meanshift-complete.jar arq2500.in 2
+
+java -jar target/meanshift-complete.jar arq3000.in 0
+java -jar target/meanshift-complete.jar arq3000.in 0
+java -jar target/meanshift-complete.jar arq3000.in 0
+java -jar target/meanshift-complete.jar arq3000.in 1
+java -jar target/meanshift-complete.jar arq3000.in 1
+java -jar target/meanshift-complete.jar arq3000.in 1
+java -jar target/meanshift-complete.jar arq3000.in 2
+java -jar target/meanshift-complete.jar arq3000.in 2
+java -jar target/meanshift-complete.jar arq3000.in 2
+
+java -jar target/meanshift-complete.jar arq3500.in 0
+java -jar target/meanshift-complete.jar arq3500.in 0
+java -jar target/meanshift-complete.jar arq3500.in 0
+java -jar target/meanshift-complete.jar arq3500.in 1
+java -jar target/meanshift-complete.jar arq3500.in 1
+java -jar target/meanshift-complete.jar arq3500.in 1
+java -jar target/meanshift-complete.jar arq3500.in 2
+java -jar target/meanshift-complete.jar arq3500.in 2
+java -jar target/meanshift-complete.jar arq3500.in 2
+
+#java -agentpath:/opt/visualvm_138/profiler/lib/deployed/jdk16/linux-amd64/libprofilerinterface.so=/opt/visualvm_138/profiler/lib,5140 -jar target/meanshift-complete.jar arq2500.in
+#java -agentpath:/opt/visualvm_138/profiler/lib/deployed/jdk16/linux-amd64/libprofilerinterface.so=/opt/visualvm_138/profiler/lib,5140 -jar target/meanshift-complete.jar arq3000.in
+#java -agentpath:/opt/visualvm_138/profiler/lib/deployed/jdk16/linux-amd64/libprofilerinterface.so=/opt/visualvm_138/profiler/lib,5140 -jar target/meanshift-complete.jar arq3500.in
