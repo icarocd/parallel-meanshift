@@ -24,6 +24,7 @@ import util.parallel.Parallel;
 public class MeanShiftClusterer {
 
     private static int OPTION = 1; //0 serial, 1 parallel API java 8, 2 parallel api customizada
+    private static int NUM_THREADS = Runtime.getRuntime().availableProcessors();;
 
 	private Map<Integer, List<Integer>> neighborsByElement;
 
@@ -46,7 +47,7 @@ public class MeanShiftClusterer {
     }
 
     public List<Integer> mean_shift(Matrix distanceMatrix, List<Integer> seeds, final float quantile, final int maxIterations) {
-    	executorService = OPTION==2 ? Executors.newFixedThreadPool(4) : null;
+    	executorService = OPTION==2 ? Executors.newFixedThreadPool(NUM_THREADS) : null;
 
     	final float bandwidth = estimateBandwidth(distanceMatrix, quantile);
 
@@ -270,15 +271,27 @@ public class MeanShiftClusterer {
         */
 
         if (args.length == 0) {
-        	System.err.println("Usage:\narg0 is the path for the distance matrix file.\narg1 is optional: 0 for serial, 1 for parallel using java 8, 2 for parallel using custom parallel API");
+        	System.err.println("Usage:"
+        	    + "\narg0 is the path for the distance matrix file."
+        	    + "\narg1 and arg2 are optional:"
+        	    + "\n\targ0 accepts 0 for serial, 1 for parallel using java 8 (default), 2 for parallel using custom parallel API"
+        	    + "\n\targ2 is the number of threads to run in parallel (by default it will be the number of cores)"
+        	    );
         	System.exit(1);
         }
 
         File distanceMatrixFile = new File(args[0]);
+        //if optional parameters informed, overwrites the default option to run and number of threads:
         if(args.length > 1){
             OPTION = Integer.parseInt(args[1]);
-        }else{
-            OPTION = 1;
+            if(args.length > 2){
+                NUM_THREADS = Integer.parseInt(args[2]);
+            }
+        }
+
+        //quando for execucao via api java 8, setar numero de threads na variavel de sistema que a API considera:
+        if(OPTION == 1){
+            System.setProperty("java.util.concurrent.ForkJoinPool.common.parallelism", String.valueOf(NUM_THREADS));
         }
 
         m = Matrix.load(distanceMatrixFile);
