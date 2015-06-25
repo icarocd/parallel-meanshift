@@ -59,7 +59,7 @@ public class MeanShiftClusterer {
 
             // For each seed, climb gradient until convergence or max_iterations:
 
-            intensityByCenter = OPTION==0 ? new HashMap<>() : new ConcurrentHashMap<>();
+            intensityByCenter = new HashMap<>();
             {
             	TimeWatcher timeWatcher = new TimeWatcher().start();
             	if(OPTION==0){
@@ -91,8 +91,8 @@ public class MeanShiftClusterer {
 
         boolean[] unique = DataStructureUtils.newArrayTrue(sortedCenters.size());
         for (int i = 0; i < sortedCenters.size(); i++) {
-            int center = sortedCenters.get(i);
             if (unique[i]) {
+                int center = sortedCenters.get(i);
                 List<Integer> neighborCenters = indicesOfNeighborsWithinRadius(center, distanceMatrix, bandwidth, sortedCenters);
                 DataStructureUtils.setValue(unique, neighborCenters, false);
                 unique[i] = true; // leave the current point as unique
@@ -124,7 +124,13 @@ public class MeanShiftClusterer {
 
             // If converged or at max_iterations, add the cluster
             if(distanceMatrix.getValue(seed, old_mean) < stop_thresh || completed_iterations == max_iterations){
-                intensityByCenter.put(seed, pointsWithinRadius.size());
+                int intensity = pointsWithinRadius.size();
+                synchronized (intensityByCenter) {
+                    Integer previousIntensity = intensityByCenter.putIfAbsent(seed, intensity);
+                    if(previousIntensity != null && intensity > previousIntensity){
+                        intensityByCenter.put(seed, intensity);
+                    }
+                }
                 break;
             }
             completed_iterations++;
@@ -296,11 +302,11 @@ public class MeanShiftClusterer {
 
         m = Matrix.load(distanceMatrixFile);
 
-    	TimeWatcher timeWatcher = new TimeWatcher().start();
-    	List<Integer> clusters = new MeanShiftClusterer().mean_shift(m, m.getLineNumber(), 0.5F, 100);
-    	System.out.println("total time to run meanshift: " + timeWatcher.getTime());
+        TimeWatcher timeWatcher = new TimeWatcher().start();
+        List<Integer> clusters = new MeanShiftClusterer().mean_shift(m, m.getLineNumber(), 0.5F, 100);
+        System.out.println("total time to run meanshift: " + timeWatcher.getTime());
 
-    	Collections.sort(clusters);
-    	System.out.println("Cluster centers:" + clusters);
+        Collections.sort(clusters);
+        System.out.println("Cluster centers:" + clusters);
     }
 }
