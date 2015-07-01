@@ -55,7 +55,7 @@
 							<mainClass>MeanShiftClusterer</mainClass>
 						</manifest>
 					</archive>
-					<finalName>${project.artifactId}-complete</finalName>
+					<finalName>${project.artifactId}</finalName>
 					<appendAssemblyId>false</appendAssemblyId>
 					<attach>false</attach>
 				</configuration>
