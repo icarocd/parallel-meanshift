@@ -260,21 +260,7 @@ public class MeanShiftClusterer {
     }
 
     public static void main(String[] args) throws Exception {
-    	Matrix m;
-
-    	/*
-    	int nElements = 3500;
-        m = new Matrix(nElements, nElements);
-        for (int i = 0; i < nElements; i++) {
-            for (int j = i + 1; j < nElements; j++) {
-                float v = (float) Math.random();
-                m.setValue(i, j, v);
-                m.setValue(j, i, v);
-            }
-        }
-        m.save(new File("/home/icaro/parallel-meanshift/arq"+nElements+".in"));
-        System.exit(0);
-        */
+    	//generateRandomMatrix(3500);
 
         if (args.length == 0) {
         	System.err.println("Usage:"
@@ -300,7 +286,7 @@ public class MeanShiftClusterer {
             System.setProperty("java.util.concurrent.ForkJoinPool.common.parallelism", String.valueOf(NUM_THREADS));
         }
 
-        m = Matrix.load(distanceMatrixFile);
+        Matrix m = Matrix.load(distanceMatrixFile);
 
         TimeWatcher timeWatcher = new TimeWatcher().start();
         List<Integer> clusters = new MeanShiftClusterer().mean_shift(m, m.getLineNumber(), 0.5F, 100);
@@ -308,5 +294,17 @@ public class MeanShiftClusterer {
 
         Collections.sort(clusters);
         System.out.println("Cluster centers:" + clusters);
+    }
+
+    static void generateRandomMatrix(int nElements) {
+        Matrix m = new Matrix(nElements, nElements);
+        for (int i = 0; i < nElements; i++) {
+            for (int j = i + 1; j < nElements; j++) {
+                float v = (float) Math.random();
+                m.setValue(i, j, v);
+                m.setValue(j, i, v);
+            }
+        }
+        m.save(new File("/home/icaro/parallel-meanshift/arq"+nElements+".in"));
     }
 }
